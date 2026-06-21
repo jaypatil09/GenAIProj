@@ -3,6 +3,7 @@ Feedback Processor.
 Orchestrates the complete feedback analysis pipeline.
 """
 
+from collections import defaultdict
 from typing import Dict, List
 import pandas as pd
 from datetime import datetime
@@ -66,16 +67,27 @@ class FeedbackProcessor:
         service_line = self.service_line_classifier.classify(feedback_text)
         
         # Detect aspects
-        aspects = self.aspect_detector.detect(feedback_text)
-        
-        # Classify aspect sentiments
+        aspect_votes = defaultdict(list)
+
+        for clause_result in clause_analysis:
+            for aspect, sentiment in clause_result["aspect_sentiments"].items():
+                aspect_votes[aspect].append(sentiment)
+
         aspect_sentiments = {}
-        for aspect in aspects:
-            sentiment = self.aspect_sentiment_classifier.classify(
-                feedback_text,
-                aspect=aspect
-            )
-            aspect_sentiments[aspect] = sentiment
+
+        for aspect, sentiments in aspect_votes.items():
+
+            positive = sentiments.count("positive")
+            negative = sentiments.count("negative")
+
+            if negative > positive:
+                aspect_sentiments[aspect] = "negative"
+            elif positive > negative:
+                aspect_sentiments[aspect] = "positive"
+            else:
+                aspect_sentiments[aspect] = "neutral"
+
+        aspects = list(aspect_sentiments.keys())
         
         # Determine overall sentiment (majority vote of aspect sentiments)
         sentiments = list(aspect_sentiments.values())
@@ -102,7 +114,10 @@ class FeedbackProcessor:
         routing_info = self.routing_engine.route(
             aspects,
             severity,
-            service_line
+            service_line=service_line,
+            staff_category=staff_category,
+            overall_sentiment=overall_sentiment,
+            clause_analysis=clause_analysis
         )
         
         # Compile result
@@ -185,6 +200,8 @@ class FeedbackProcessor:
         clauses = self.clause_processor.split_clauses(feedback_text)
         clause_results = []
 
+        last_staff = None
+
         for clause in clauses:
             aspects = self.aspect_detector.detect(clause)
             aspect_sentiments = {}
@@ -204,10 +221,17 @@ class FeedbackProcessor:
             else:
                 clause_sentiment = "neutral"
 
+            # Attribute follow-up clauses to the most recently named staff.
+            staff = self.staff_detector.detect(clause)
+            if staff != "general_staff":
+                last_staff = staff
+            elif last_staff:
+                staff = last_staff
+
             clause_results.append(
                 {
                     "clause": clause,
-                    "staff_category": self.staff_detector.detect(clause),
+                    "staff_category": staff,
                     "aspects": aspects,
                     "aspect_sentiments": aspect_sentiments,
                     "overall_sentiment": clause_sentiment

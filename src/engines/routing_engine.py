@@ -3,7 +3,7 @@ Routing Engine.
 Routes feedback to appropriate departments based on aspects and severity.
 """
 
-from typing import List, Dict
+from typing import Any, Dict, List
 
 
 class RoutingEngine:
@@ -23,7 +23,7 @@ class RoutingEngine:
     }
     
     # Escalation rules based on severity
-    ESCALATION_SEVERITY_LEVELS = ["CRITICAL", "HIGH"]
+    ESCALATION_SEVERITY_LEVELS = ["CRITICAL", "HIGH", "MEDIUM"]
     ESCALATION_DEPARTMENT = "Management"
     
     def __init__(self):
@@ -34,85 +34,100 @@ class RoutingEngine:
         self,
         aspects: List[str],
         severity: str,
-        service_line: str = None
-    ) -> Dict[str, any]:
+        service_line: str = None,
+        staff_category: str = None,
+        overall_sentiment: str = None,
+        clause_analysis: List[Dict] = None
+    ) -> Dict[str, Any]:
         """
         Route feedback to appropriate department.
-        
-        Args:
-            aspects: List of detected aspects
-            severity: Severity level
-            service_line: Service line (optional)
-            
-        Returns:
-            Dictionary with routing information
         """
-        # Check if escalation needed
+
+        # ===== Escalation Rules =====
         requires_escalation = severity in self.ESCALATION_SEVERITY_LEVELS
-        
-        if requires_escalation:
-            department = self.ESCALATION_DEPARTMENT
-            escalation_reason = f"{severity} severity complaint"
-        else:
-            # Route based on primary aspect
-            if aspects:
+
+        if severity == "CRITICAL":
+            return {
+                "routing_department": "Patient Safety Office",
+                "requires_escalation": True,
+                "escalation_reason": "Critical patient safety issue",
+                "primary_aspect": aspects[0] if aspects else None,
+                "all_aspects": aspects
+            }
+
+        if severity == "HIGH":
+            return {
+                "routing_department": "Patient Safety Office",
+                "requires_escalation": True,
+                "escalation_reason": "High severity patient safety concern",
+                "primary_aspect": aspects[0] if aspects else None,
+                "all_aspects": aspects
+            }
+
+        # ===== Clause-Based Routing (Preferred) =====
+        if clause_analysis:
+
+            negative_clauses = [
+                c for c in clause_analysis
+                if c.get("overall_sentiment") == "negative"
+            ]
+
+            negative_aspects = []
+
+            for clause in negative_clauses:
+                negative_aspects.extend(
+                    clause.get("aspects", [])
+                )
+
+            negative_aspects = list(dict.fromkeys(negative_aspects))
+
+            if negative_aspects:
+                primary_aspect = negative_aspects[0]
+            elif aspects:
                 primary_aspect = aspects[0]
-                department = self.ASPECT_ROUTING.get(primary_aspect, "OPD Operations")
             else:
-                department = "OPD Operations"
-            escalation_reason = None
-        
+                primary_aspect = None
+
+        else:
+            primary_aspect = aspects[0] if aspects else None
+
+        # ===== Aspect Routing =====
+        if primary_aspect:
+            department = self.ASPECT_ROUTING.get(
+                primary_aspect,
+                "Patient Relations"
+            )
+        else:
+            department = "Patient Relations"
+
+        # ===== Staff Overrides =====
+        if staff_category in ["nurse", "nursing_staff"]:
+            department = "Nursing Supervisor"
+
+        elif staff_category == "doctor":
+            department = "Medical Services"
+
+        elif staff_category in ["lab_technician", "diagnostics_staff"]:
+            department = "Diagnostics Department"
+
+        elif staff_category in ["receptionist", "reception_staff"]:
+            department = "Front Desk"
+
+        elif staff_category == "billing_staff":
+            department = "Billing Department"
+
+        if department == "Patient Relations" and service_line:
+            department = f"{service_line} Operations"
+
+        # Final return (outside the if/elif chain)
         return {
             "routing_department": department,
             "requires_escalation": requires_escalation,
-            "escalation_reason": escalation_reason,
-            "primary_aspect": aspects[0] if aspects else None,
+            "escalation_reason": (
+                "Medium severity operational issue"
+                if severity == "MEDIUM"
+                else None
+            ),
+            "primary_aspect": primary_aspect,
             "all_aspects": aspects
         }
-    
-    def route_batch(
-        self,
-        aspects_list: List[List[str]],
-        severities: List[str],
-        service_lines: List[str] = None
-    ) -> List[Dict]:
-        """
-        Route multiple feedbacks.
-        
-        Args:
-            aspects_list: List of aspect lists
-            severities: List of severity levels
-            service_lines: List of service lines (optional)
-            
-        Returns:
-            List of routing dictionaries
-        """
-        if service_lines is None:
-            service_lines = [None] * len(aspects_list)
-        
-        return [
-            self.route(aspects, severity, service_line)
-            for aspects, severity, service_line in zip(aspects_list, severities, service_lines)
-        ]
-    
-    def get_routing_rules(self) -> Dict[str, str]:
-        """Get all routing rules."""
-        return self.ASPECT_ROUTING.copy()
-    
-    def get_department_for_aspect(self, aspect: str) -> str:
-        """
-        Get department for a specific aspect.
-        
-        Args:
-            aspect: Aspect name
-            
-        Returns:
-            Department name
-        """
-        return self.ASPECT_ROUTING.get(aspect, "OPD Operations")
-    
-    def get_all_departments(self) -> List[str]:
-        """Get list of all departments."""
-        departments = set(self.ASPECT_ROUTING.values())
-        departments.add(self.ESCALATION_DEPARTMENT)
-        return sorted(list(departments))
