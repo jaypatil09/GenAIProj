@@ -159,7 +159,7 @@ if page == "📊 Dashboard Overview":
                 names=sentiment_counts.index,
                 color_discrete_map={"positive": "#2ecc71", "neutral": "#95a5a6", "negative": "#e74c3c"}
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     with col2:
         st.subheader("Severity Distribution")
@@ -171,7 +171,7 @@ if page == "📊 Dashboard Overview":
                 names=severity_counts.index,
                 color_discrete_map=color_map
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     col1, col2 = st.columns(2)
     
@@ -187,7 +187,7 @@ if page == "📊 Dashboard Overview":
                 color_continuous_scale='Blues'
             )
             fig.update_layout(showlegend=False, xaxis_title="Count", yaxis_title="Department")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     with col2:
         st.subheader("Service Line Distribution")
@@ -200,7 +200,7 @@ if page == "📊 Dashboard Overview":
                 color_continuous_scale='Greens'
             )
             fig.update_layout(showlegend=False, xaxis_title="Service Line", yaxis_title="Count")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
 
 # ============================================================================
@@ -223,7 +223,7 @@ elif page == "🔍 Feedback Analyzer":
         placeholder="Paste patient feedback here..."
     )
     
-    if st.button("🔍 Analyze Feedback", use_container_width=True):
+    if st.button("🔍 Analyze Feedback", width='stretch'):
         if feedback_text.strip():
             with st.spinner("Analyzing feedback..."):
                 result = feedback_processor.process_single(feedback_text)
@@ -243,7 +243,7 @@ elif page == "🔍 Feedback Analyzer":
                 ]
 
                 clause_df = pd.DataFrame(rows)
-                st.dataframe(clause_df, use_container_width=True)
+                st.dataframe(clause_df, width='stretch')
             else:
                 st.info("No clauses were detected in this feedback.")
 
@@ -358,7 +358,7 @@ elif page == "📋 Complaint Queue":
     
     st.dataframe(
         filtered_df[display_cols].head(20),
-        use_container_width=True,
+        width='stretch',
         height=500
     )
 
@@ -409,7 +409,7 @@ elif page == "📈 Department Trends":
                 names=sentiment_counts.index,
                 color_discrete_map={"positive": "#2ecc71", "neutral": "#95a5a6", "negative": "#e74c3c"}
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     with col2:
         st.subheader("Severity Distribution")
@@ -421,7 +421,7 @@ elif page == "📈 Department Trends":
                 color=severity_counts.index,
                 color_discrete_map={"CRITICAL": "#e74c3c", "HIGH": "#e67e22", "MEDIUM": "#f39c12", "LOW": "#2ecc71"}
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
 
 # ============================================================================
@@ -461,7 +461,7 @@ elif page == "🎯 Aspect Analytics":
         color="Count",
         color_continuous_scale="Viridis"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     st.markdown("---")
     
@@ -489,7 +489,7 @@ elif page == "🎯 Aspect Analytics":
                 color="aspect",
                 barmode="group"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
 
 # ============================================================================
@@ -531,7 +531,7 @@ elif page == "⚠️ Escalation Center":
         display_cols = [col for col in ["feedback_id", "feedback_text", "severity", "escalation_reason", "routing_department"] if col in escalations.columns]
         st.dataframe(
             escalations[display_cols].head(20),
-            use_container_width=True,
+            width='stretch',
             height=500
         )
     else:
@@ -579,7 +579,7 @@ elif page == "👥 Staff Analytics":
         color_continuous_scale="Plasma",
         labels={"x": "Staff Category", "y": "Number of Feedbacks"}
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     st.markdown("---")
     
@@ -602,7 +602,7 @@ elif page == "👥 Staff Analytics":
             xaxis_title="Staff Category",
             yaxis_title="Count"
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
 
 # Footer
