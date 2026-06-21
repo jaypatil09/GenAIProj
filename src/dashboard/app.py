@@ -20,6 +20,8 @@ from src.models.service_line_classifier import ServiceLineClassifier
 from src.models.aspect_sentiment_classifier import AspectSentimentClassifier
 from src.engines.feedback_processor import FeedbackProcessor
 
+PIPELINE_VERSION = "clause-analysis-v1"
+
 # Page configuration
 st.set_page_config(
     page_title="SentiMeter Dashboard",
@@ -42,7 +44,7 @@ st.markdown("""
 
 # Initialize components
 @st.cache_resource
-def initialize_components():
+def initialize_components(pipeline_version: str):
     """Initialize all components once."""
     try:
         aspect_detector = AspectDetector()
@@ -64,7 +66,7 @@ def initialize_components():
 @st.cache_data(ttl=300)
 def load_data():
     """Load processed feedback data."""
-    _, data_loader = initialize_components()
+    _, data_loader = initialize_components(PIPELINE_VERSION)
     if data_loader is None:
         return pd.DataFrame()
     
@@ -207,7 +209,7 @@ if page == "📊 Dashboard Overview":
 elif page == "🔍 Feedback Analyzer":
     st.title("Real-time Feedback Analyzer")
     
-    feedback_processor, _ = initialize_components()
+    feedback_processor, _ = initialize_components(PIPELINE_VERSION)
     
     if feedback_processor is None:
         st.error("Components not initialized")
@@ -225,7 +227,26 @@ elif page == "🔍 Feedback Analyzer":
         if feedback_text.strip():
             with st.spinner("Analyzing feedback..."):
                 result = feedback_processor.process_single(feedback_text)
-            
+
+            # Clause Analysis
+            st.subheader("Clause Analysis")
+
+            if result.get("clause_analysis"):
+                rows = [
+                    {
+                        "Clause": item["clause"],
+                        "Staff": item["staff_category"],
+                        "Aspects": ", ".join(item["aspects"]),
+                        "Sentiment": item["overall_sentiment"]
+                    }
+                    for item in result["clause_analysis"]
+                ]
+
+                clause_df = pd.DataFrame(rows)
+                st.dataframe(clause_df, use_container_width=True)
+            else:
+                st.info("No clauses were detected in this feedback.")
+
             # Display results
             col1, col2, col3 = st.columns(3)
             

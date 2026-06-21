@@ -382,6 +382,8 @@ This project demonstrates:
 ---
 
 ## 🎉 NEXT STEPS
+0. python -m venv venv
+   venv\Scripts\activate;
 
 1. **Install Dependencies**
    ```bash

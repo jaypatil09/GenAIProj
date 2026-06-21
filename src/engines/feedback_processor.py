@@ -11,6 +11,7 @@ from ..data.text_cleaning import TextCleaner
 from .staff_detector import StaffDetector
 from .severity_engine import SeverityEngine
 from .routing_engine import RoutingEngine
+from .clause_processor import ClauseProcessor
 
 
 class FeedbackProcessor:
@@ -38,6 +39,7 @@ class FeedbackProcessor:
         self.staff_detector = StaffDetector()
         self.severity_engine = SeverityEngine()
         self.routing_engine = RoutingEngine()
+        self.clause_processor = ClauseProcessor()
     
     def process_single(self, feedback_text: str, feedback_id: str = None) -> Dict:
         """
@@ -56,6 +58,9 @@ class FeedbackProcessor:
         
         # Clean text
         cleaned_text = self.text_cleaner.clean(feedback_text)
+
+        # NEW: Analyze clauses
+        clause_analysis = self.analyze_clauses(feedback_text)
         
         # Classify service line
         service_line = self.service_line_classifier.classify(feedback_text)
@@ -106,6 +111,7 @@ class FeedbackProcessor:
             "timestamp": datetime.now().isoformat(),
             "original_text": feedback_text,
             "cleaned_text": cleaned_text,
+            "clause_analysis": clause_analysis,
             "service_line": service_line,
             "aspects": aspects,
             "aspect_sentiments": aspect_sentiments,
@@ -173,3 +179,39 @@ class FeedbackProcessor:
             processed_records.append(result)
         
         return pd.DataFrame(processed_records)
+
+    def analyze_clauses(self, feedback_text: str) -> List[Dict]:
+        """Analyze feedback at clause level."""
+        clauses = self.clause_processor.split_clauses(feedback_text)
+        clause_results = []
+
+        for clause in clauses:
+            aspects = self.aspect_detector.detect(clause)
+            aspect_sentiments = {}
+
+            for aspect in aspects:
+                sentiment = self.aspect_sentiment_classifier.classify(
+                    clause,
+                    aspect=aspect
+                )
+                aspect_sentiments[aspect] = sentiment
+
+            sentiments = list(aspect_sentiments.values())
+            if sentiments.count("positive") > len(sentiments) / 2:
+                clause_sentiment = "positive"
+            elif sentiments.count("negative") > len(sentiments) / 2:
+                clause_sentiment = "negative"
+            else:
+                clause_sentiment = "neutral"
+
+            clause_results.append(
+                {
+                    "clause": clause,
+                    "staff_category": self.staff_detector.detect(clause),
+                    "aspects": aspects,
+                    "aspect_sentiments": aspect_sentiments,
+                    "overall_sentiment": clause_sentiment
+                }
+            )
+
+        return clause_results
