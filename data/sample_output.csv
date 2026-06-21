@@ -1,0 +1,11 @@
+feedback_id,timestamp,source,feedback_text,service_line,aspects,aspect_sentiments,overall_sentiment,staff_category,severity,routing_department,requires_escalation,escalation_reason
+FBK000001,2026-03-23 23:28:41,mobile_app,Billing was confusing and the receptionist was unhelpful.,Billing Department,billing,billing:neutral,negative,reception_staff,MEDIUM,Billing Department,False,
+FBK000002,2026-05-11 13:41:48,in_person,Billing was confusing and the receptionist was unhelpful.,Diagnostic Services,billing,billing:neutral,negative,reception_staff,HIGH,Management,True,HIGH severity complaint
+FBK000003,2026-04-08 00:23:42,mobile_app,Very happy with the treatment and explanation provided.,Administration,wait_time,wait_time:neutral,positive,general_staff,LOW,OPD Operations,False,
+FBK000004,2026-06-04 16:33:43,in_person,Very satisfied with the diagnostics provided. Highly recommend.,Surgery,lab_services,lab_services:positive,positive,general_staff,LOW,Diagnostics Department,False,
+FBK000005,2026-06-02 05:57:38,phone,Waited too long and no one explained the lab_services properly.,Surgery,wait_time|diagnostics|doctor_explanation,wait_time:neutral|diagnostics:neutral|doctor_explanation:neutral,negative,diagnostics_staff,MEDIUM,OPD Operations,False,
+FBK000006,2026-03-30 08:28:56,mobile_app,The radiologist shouted at me without any reason.,Billing Department,politeness,politeness:neutral,negative,diagnostics_staff,MEDIUM,Front Desk,False,
+FBK000007,2026-06-17 07:32:38,web_form,The nurse was rude and dismissive. Poor experience.,Emergency Department,politeness|nursing_care,politeness:negative|nursing_care:negative,negative,nursing_staff,MEDIUM,Front Desk,False,
+FBK000008,2026-04-20 02:02:48,in_person,The experience at Diagnostic Services was average. Nothing special.,Diagnostic Services,wait_time,wait_time:neutral,neutral,general_staff,MEDIUM,OPD Operations,False,
+FBK000009,2026-06-13 11:27:04,phone,The experience at Inpatient Ward was average. Nothing special.,Inpatient Ward,doctor_explanation,doctor_explanation:neutral,neutral,general_staff,MEDIUM,Medical Services,False,
+FBK000010,2026-05-03 07:47:46,phone,The facilities were dirty and smelly. Unacceptable.,Billing Department,cleanliness,cleanliness:negative,negative,general_staff,HIGH,Management,True,HIGH severity complaint
