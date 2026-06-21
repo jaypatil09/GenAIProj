@@ -118,11 +118,8 @@ cd SentiMeter
 ```bash
 # Using venv
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
 
-# Or using conda
-conda create -n sentimeter python=3.8
-conda activate sentimeter
 ```
 
 3. **Install dependencies**
