@@ -6,6 +6,7 @@ Analyzes sentiment for each detected aspect in feedback.
 from typing import List, Dict
 import joblib
 import os
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
@@ -17,6 +18,22 @@ class AspectSentimentClassifier:
     """Classify sentiment for individual aspects."""
     
     SENTIMENTS = ["positive", "neutral", "negative"]
+    POSITIVE_PATTERNS = (
+        r"\bexcellent\b", r"\bgood\b", r"\bgreat\b", r"\bhappy\b",
+        r"\bhelpful\b", r"\bpolite\b", r"\bprofessional\b",
+        r"\brecommend\b", r"\bresponsive\b", r"\bsatisfied\b",
+        r"\bthank(?:s|ful)?\b", r"\bwell\b"
+    )
+    NEGATIVE_PATTERNS = (
+        r"\barrogant\b", r"\bconfusing\b", r"\bdelay(?:ed)?\b",
+        r"\bdirty\b", r"\bdisappointed\b", r"\berrors?\b",
+        r"\bfail(?:ed|ure)?\b", r"\bfrustrated\b", r"\bharm(?:ful)?\b",
+        r"\binaccurate\b", r"\bincorrect\b", r"\binattentive\b",
+        r"\blate\b", r"\bmissing\b", r"\bpoor\b", r"\brude\b",
+        r"\bserious\b", r"\bunacceptable\b", r"\bunhelpful\b",
+        r"\bunsafe\b", r"\bwithout properly\b", r"\bwrong\b",
+        r"\bnot (?:helpful|satisfied|professional|safe)\b"
+    )
     
     def __init__(self, model_path: str = "models"):
         """
@@ -46,13 +63,13 @@ class AspectSentimentClassifier:
             Sentiment label (positive, neutral, negative)
         """
         if not self.is_trained:
-            return "neutral"  # Default
+            return self._classify_rule_based(text)
         
         # Use overall sentiment model if aspect not specified
         model_key = aspect if aspect else "overall"
         
         if model_key not in self.models:
-            return "neutral"
+            return self._classify_rule_based(text)
         
         prediction = self.models[model_key].predict([text])[0]
         return prediction
@@ -69,12 +86,12 @@ class AspectSentimentClassifier:
             List of sentiment labels
         """
         if not self.is_trained:
-            return ["neutral"] * len(texts)
+            return [self._classify_rule_based(text) for text in texts]
         
         model_key = aspect if aspect else "overall"
         
         if model_key not in self.models:
-            return ["neutral"] * len(texts)
+            return [self._classify_rule_based(text) for text in texts]
         
         predictions = self.models[model_key].predict(texts)
         return list(predictions)
@@ -179,6 +196,23 @@ class AspectSentimentClassifier:
         
         if self.models:
             self.is_trained = True
+
+    def _classify_rule_based(self, text: str) -> str:
+        """Classify sentiment when no trained model is available."""
+        positive_score = sum(
+            bool(re.search(pattern, text, flags=re.IGNORECASE))
+            for pattern in self.POSITIVE_PATTERNS
+        )
+        negative_score = sum(
+            bool(re.search(pattern, text, flags=re.IGNORECASE))
+            for pattern in self.NEGATIVE_PATTERNS
+        )
+
+        if positive_score > negative_score:
+            return "positive"
+        if negative_score > positive_score:
+            return "negative"
+        return "neutral"
     
     def get_sentiments(self) -> List[str]:
         """Get list of all sentiment categories."""

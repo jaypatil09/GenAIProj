@@ -5,12 +5,22 @@ class ClauseProcessor:
     """Split feedback text into clauses for independent analysis."""
 
     _CONNECTORS = r"but|however|although|while|yet|though"
+    _STAFF_SUBJECTS = (
+        r"(?:a\s+|an\s+|the\s+)?(?:doctor|nurse|receptionist|technician|"
+        r"pharmacist|billing(?:\s+department)?)"
+    )
     _LEADING_CONNECTOR = re.compile(
         rf"^\s*(?:{_CONNECTORS})\b\s*",
         flags=re.IGNORECASE
     )
     _BOUNDARY = re.compile(
-        rf"\s*(?:[;]+|(?<=[.!?])\s+|,?\s*\b(?:{_CONNECTORS})\b\s*,?)\s*",
+        r'\s*(?:'
+        r'[;]+'
+        r'|(?<=[.!?])\s+'
+        rf'|,\s*\band\b\s+(?={_STAFF_SUBJECTS})'
+        rf'|,\s*(?={_STAFF_SUBJECTS})'
+        rf'|,?\s*\b(?:{_CONNECTORS})\b\s*,?'
+        r')\s*',
         flags=re.IGNORECASE
     )
 

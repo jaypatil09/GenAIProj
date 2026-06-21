@@ -20,7 +20,7 @@ from src.models.service_line_classifier import ServiceLineClassifier
 from src.models.aspect_sentiment_classifier import AspectSentimentClassifier
 from src.engines.feedback_processor import FeedbackProcessor
 
-PIPELINE_VERSION = "clause-analysis-v1"
+PIPELINE_VERSION = "clause-sentiment-v2"
 
 # Page configuration
 st.set_page_config(
